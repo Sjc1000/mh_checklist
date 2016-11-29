@@ -55,8 +55,8 @@ class ItemList:
 
     def k_259(self):
         self.pos -= 1
-        if self.pos < 0:
-            self.pos = 0
+        if self.pos < 1:
+            self.pos = 1
             self.offset -= 1
         if self.offset < 0:
             self.offset = 0
@@ -123,9 +123,7 @@ class ItemList:
         matches = []
         while True:
             key = self.screen.getch()
-            if key == 113:
-                return None
-            elif key == 263:
+            if key == 263:
                 display_string = display_string[:-1]
                 input_string = display_string
                 matches = []
@@ -147,9 +145,13 @@ class ItemList:
             self.screen.addstr(self.height-1, 0, 'New Item: {}'.format(
                                display_string).ljust(self.item_width),
                                curses.A_REVERSE)
-        if display_string.strip() not in self.item_info:
+        if display_string.strip() == '':
             return None
-        self.items.append([display_string.strip(), 1])
+        match = difflib.get_close_matches(display_string, self.item_info, 1, 0)
+        if len(match) == 0:
+            return None
+        match = match[0]
+        self.items.append([match, 1])
         return None
 
     def draw_item_list(self):
