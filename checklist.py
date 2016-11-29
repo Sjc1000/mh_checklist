@@ -5,10 +5,15 @@ import os
 import difflib
 import json
 import curses
+import _curses
 
 
 FILEDIR = os.path.expanduser('~/.mh_checklist')
-VERSION = '0.1.0'
+VERSION = '0.1.2'
+
+
+class WindowSize(Exception):
+    pass
 
 
 class ItemList:
@@ -40,7 +45,10 @@ class ItemList:
         self.init_colors()
         key = None
         while True:
-            self.draw_item_list()
+            try:
+                self.draw_item_list()
+            except _curses.error:
+                raise WindowSize('Your terminal went too small for the text.') 
             #self.screen.addstr(1, 1, str(key))
             #self.screen.refresh()
             
@@ -282,7 +290,8 @@ class ItemList:
         for index, line in enumerate(string[self.info_offset:]):
             if index == self.height-1:
                 break
-            self.screen.addstr(1+index, self.item_width+2, line[0], line[1])
+            text = line[0][:self.width-self.item_width-4]
+            self.screen.addstr(1+index, self.item_width+2, text, line[1])
         return None
 
     def init_colors(self):
@@ -319,8 +328,11 @@ def main():
     with open('gen.json', 'r') as f:
         info = json.loads(f.read())
 
-    with ItemList(items, info) as item_list:
-        item_list.main()
+    try:
+        with ItemList(items, info) as item_list:
+            item_list.main()
+    except WindowSize:
+        print('Please make sure you window does not get too small.')
 
     with open('{}/items.json'.format(FILEDIR), 'w') as f:
         f.write(json.dumps(items))
