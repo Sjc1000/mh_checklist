@@ -131,7 +131,7 @@ class ItemList:
         matches = []
         while True:
             key = self.screen.getch()
-            if key == 263:
+            if key in [263, 127]:
                 display_string = display_string[:-1]
                 input_string = display_string
                 matches = []
